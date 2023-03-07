@@ -1,7 +1,24 @@
 const slidesElement = document.querySelector("#slides");
 
-export default function createElements(fileText, clickCallback) {
-	const slides = fileText.split("\n---\n").map((str) => str.trim());
+/**
+ *
+ * @param {MouseEvent} e
+ */
+function cancel(e) {
+	e.stopImmediatePropagation();
+}
+
+/**
+ *
+ * @param {string} fileText
+ * @param {Function} clickCallback
+ * @returns
+ */
+export default function createElements(fileText, clickCallback, setSlide) {
+	const slides = fileText
+		.replaceAll("\r", "")
+		.split("\n---\n")
+		.map((str) => str.trim());
 
 	let elements = [];
 	let skipped = [];
@@ -23,6 +40,23 @@ export default function createElements(fileText, clickCallback) {
 
 			skipped.push(index);
 		}
+
+		element
+			.querySelectorAll("p:has(> img[alt='column left'])")
+			.forEach((p) => p.classList.add("column-left"));
+		element
+			.querySelectorAll("p:has(> img[alt='column right'])")
+			.forEach((p) => p.classList.add("column-right"));
+
+		element.querySelectorAll("a").forEach((a) => {
+			if (a.getAttribute("href").startsWith("#")) {
+				let slideNumber = parseInt(a.getAttribute("href").slice(1));
+				if (!isNaN(slideNumber))
+					a.addEventListener("click", () => setSlide(slideNumber));
+			}
+
+			a.addEventListener("click", cancel);
+		});
 
 		element.addEventListener("click", clickCallback);
 
